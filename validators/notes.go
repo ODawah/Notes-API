@@ -2,6 +2,8 @@ package validators
 
 import (
 	"errors"
+
+	"github.com/google/uuid"
 )
 
 func IsValidText(text string) error {
@@ -9,7 +11,7 @@ func IsValidText(text string) error {
 		return errors.New("empty note text")
 	}
 	if len(text) > 500 {
-		return errors.New("large note text")
+		return errors.New("long note text")
 	}
 	return nil
 }
@@ -19,7 +21,15 @@ func IsValidTitle(title string) error {
 		return errors.New("empty note title")
 	}
 	if len(title) > 100 {
-		return errors.New("large note title")
+		return errors.New("long note title")
 	}
 	return nil
+}
+
+func IsUUIDValid(UUID string) bool {
+	_, err := uuid.Parse(UUID)
+	if err != nil {
+		return false
+	}
+	return true
 }
