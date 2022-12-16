@@ -29,3 +29,17 @@ func CreateNote(note schemas.Note) (*schemas.Note, error) {
 
 	return &note, nil
 }
+
+func FindNoteByTitle(title string) (*schemas.Note, error) {
+	err := validators.IsValidTitle(title)
+	if err != nil {
+		return nil, err
+	}
+	title = strings.TrimSpace(strings.ToLower(title))
+	var note schemas.Note
+	err = database.DB.QueryRow("SELECT uuid,title,note_text FROM notes WHERE title=?", title).Scan(&note.UUID, &note.Title, &note.Text)
+	if err != nil {
+		return nil, err
+	}
+	return &note, nil
+}
