@@ -15,7 +15,7 @@ func Connect() error {
 	if err != nil {
 		return err
 	}
-	statement, err := DB.Prepare("CREATE TABLE IF NOT EXISTS notes (uuid CHAR(36) NOT NULL check(LENGTH(uuid) = 36) PRIMARY KEY,title TEXT NOT NULL check(LENGTH(title) BETWEEN 1 AND 100),note_text TEXT NOT NULL check(LENGTH(title) BETWEEN 1 AND 500))")
+	statement, err := DB.Prepare("CREATE TABLE IF NOT EXISTS notes (uuid CHAR(36) NOT NULL check(LENGTH(uuid) = 36) PRIMARY KEY,title TEXT NOT NULL check(LENGTH(title) BETWEEN 1 AND 100),note_text TEXT NOT NULL check(LENGTH(note_text) BETWEEN 1 AND 500))")
 	if err != nil {
 		return err
 	}

@@ -148,3 +148,42 @@ func TestDeleteNote(t *testing.T) {
 	}
 
 }
+
+func TestUpdateNote(t *testing.T) {
+	dbErr := database.Connect()
+	if dbErr != nil {
+		t.Fatal(dbErr)
+	}
+	defer database.CleanUp()
+	n1, _ := CreateNote(schemas.Note{Title: "Test Title", Text: "Test Text"})
+	n2, _ := CreateNote(schemas.Note{Title: "finish the tasks", Text: "create the API"})
+
+	type test struct {
+		name     string
+		uuid     string
+		input    schemas.Note
+		expected int
+		err      error
+	}
+
+	tests := []test{
+		{name: "normal note updates", uuid: n1.UUID, input: schemas.Note{Title: "updated title", Text: "updated text"}, expected: 1, err: nil},
+		{name: "title update only", uuid: n1.UUID, input: schemas.Note{Title: "updated title", Text: "updated text"}, expected: 1, err: nil},
+		{name: "text update only", uuid: n2.UUID, input: schemas.Note{Title: "updated title", Text: "updated text"}, expected: 1, err: nil},
+		{name: "no uuid", uuid: "", input: schemas.Note{Title: "updated title", Text: "updated text"}, expected: 0, err: errors.New("invalid UUID")},
+		{name: "empty update", uuid: n2.UUID, input: schemas.Note{Title: "", Text: ""}, expected: 0, err: errors.New("empty updates")},
+	}
+
+	for _, tc := range tests {
+		got, err := UpdateNote(tc.uuid, tc.input)
+		if got != tc.expected {
+			t.Log(tc.name)
+			t.Fatalf("got: %d    expected:%d", got, tc.expected)
+		}
+		if fmt.Sprint(err) != fmt.Sprint(tc.err) {
+			t.Log(tc.name)
+			t.Fatalf("got: %s    expected:%s", err, tc.err)
+		}
+	}
+
+}
