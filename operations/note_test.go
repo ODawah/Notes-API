@@ -111,3 +111,40 @@ func TestFindNoteByTitle(t *testing.T) {
 	}
 
 }
+
+func TestDeleteNote(t *testing.T) {
+	dbErr := database.Connect()
+	if dbErr != nil {
+		t.Fatal(dbErr)
+	}
+	defer database.CleanUp()
+	n1, _ := CreateNote(schemas.Note{Title: "Test Title", Text: "Test Text"})
+	n2, _ := CreateNote(schemas.Note{Title: "finish the tasks", Text: "create the API"})
+
+	type test struct {
+		name     string
+		input    string
+		expected int
+		err      error
+	}
+
+	tests := []test{
+		{name: "normal note uuid", input: n1.UUID, expected: 1, err: nil},
+		{name: "normal note uuid", input: n2.UUID, expected: 1, err: nil},
+		{name: "no uuid", input: "", expected: 0, err: errors.New("invalid UUID")},
+		{name: "uuid not in db", input: "6a3f5046-7d3f-11ed-a1eb-0242ac120002", expected: 0, err: errors.New("note not found")},
+	}
+
+	for _, tc := range tests {
+		got, err := DeleteNote(tc.input)
+		if fmt.Sprint(err) != fmt.Sprint(tc.err) {
+			t.Log(tc.name)
+			t.Fatalf("got: %s    expected:%s", err, tc.err)
+		}
+		if got != tc.expected {
+			t.Log(tc.name)
+			t.Fatalf("got: %d    expected:%d", got, tc.expected)
+		}
+	}
+
+}
