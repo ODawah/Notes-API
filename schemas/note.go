@@ -5,3 +5,7 @@ type Note struct {
 	Title string
 	Text  string
 }
+
+type AllNotes struct {
+	Notes []Note
+}

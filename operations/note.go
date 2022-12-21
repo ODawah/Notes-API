@@ -68,15 +68,13 @@ func UpdateNote(UUID string, note schemas.Note) (int, error) {
 	if !valid {
 		return 0, errors.New("invalid UUID")
 	}
+	note.Text = strings.TrimSpace(strings.ToLower(note.Text))
+	note.Title = strings.TrimSpace(strings.ToLower(note.Title))
 	if note.Title == "" && note.Text != "" {
-		note.Text = strings.TrimSpace(strings.ToLower(note.Text))
 		query = fmt.Sprintf("UPDATE notes set note_text = \"%s\" WHERE uuid = \"%s\"", note.Text, UUID)
 	} else if note.Text == "" && note.Title != "" {
-		note.Title = strings.TrimSpace(strings.ToLower(note.Title))
 		query = fmt.Sprintf("UPDATE notes set title = \"%s\" WHERE uuid = \"%s\"", note.Title, UUID)
 	} else if note.Text != "" && note.Title != "" {
-		note.Text = strings.TrimSpace(strings.ToLower(note.Text))
-		note.Title = strings.TrimSpace(strings.ToLower(note.Title))
 		query = fmt.Sprintf("UPDATE notes set title = \"%s\", note_text = \"%s\" WHERE uuid = \"%s\"", note.Title, note.Text, UUID)
 	}
 	if query == "" {
@@ -92,4 +90,21 @@ func UpdateNote(UUID string, note schemas.Note) (int, error) {
 	}
 	return int(n), nil
 
+}
+
+func FindNotes() (*schemas.AllNotes, error) {
+	rows, err := database.DB.Query("SELECT * FROM notes")
+	if err != nil {
+		return nil, err
+	}
+	var res schemas.AllNotes
+	for rows.Next() {
+		var note schemas.Note
+		err = rows.Scan(&note.UUID, &note.Title, &note.Text)
+		if err != nil {
+			return nil, err
+		}
+		res.Notes = append(res.Notes, note)
+	}
+	return &res, nil
 }
