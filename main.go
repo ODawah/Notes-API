@@ -20,21 +20,3 @@ func main() {
 	router.PATCH("/update-note", handlers.UpdateNoteByUUID)
 	log.Fatalln(router.Run(":8080"))
 }
-
-// err := database.Connect()
-// if err != nil {
-// fmt.Println(err)
-// return
-// }
-// note, err := operations.CreateNote(schemas.Note{Title: "hello", Text: "world"})
-// if err != nil {
-// fmt.Println(err)
-// return
-// }
-// fmt.Println(note)
-// note, err = operations.CreateNote(schemas.Note{Title: "hellsadfsfsdfo", Text: "woasdfasdfgdfbharld"})
-// if err != nil {
-// fmt.Println(err)
-// }
-// notes, err := operations.FindNotes()
-// fmt.Println(notes)
