@@ -8,6 +8,7 @@ import (
 	"github.com/Notes-App/encrypt"
 	"github.com/Notes-App/generators"
 	"github.com/Notes-App/schemas"
+	"github.com/Notes-App/validators"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -44,6 +45,18 @@ func FindUser(user schemas.User) (*schemas.User, error) {
 	err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(user.Password))
 	if err != nil {
 		return nil, errors.New("wrong password")
+	}
+	return &dbUser, nil
+}
+
+func FindUserByUUID(uuid string) (*schemas.User, error) {
+	var dbUser schemas.User
+	if !validators.IsUUIDValid(uuid) {
+		return nil, errors.New("invalid uuid")
+	}
+	err := database.DB.QueryRow("SELECT uuid,email,password FROM users WHERE uuid = ?", uuid).Scan(&dbUser.UUID, &dbUser.Email, &dbUser.Password)
+	if err != nil || &dbUser == nil {
+		return nil, errors.New("user not found")
 	}
 	return &dbUser, nil
 }
