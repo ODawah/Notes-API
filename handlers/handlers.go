@@ -1,9 +1,14 @@
 package handlers
 
 import (
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/Notes-App/operations"
 	"github.com/Notes-App/schemas"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 func CreateNote(c *gin.Context) {
@@ -69,4 +74,52 @@ func UpdateNoteByUUID(c *gin.Context) {
 		return
 	}
 	c.Status(200)
+}
+
+func SignUp(c *gin.Context) {
+	var body schemas.User
+	if c.BindJSON(&body) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
+		return
+	}
+	_, err := operations.CreateUser(body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.Status(http.StatusOK)
+	return
+}
+
+func Login(c *gin.Context) {
+	var body schemas.User
+	if c.BindJSON(&body) != nil {
+		c.JSON(400, gin.H{"error": "Failed to read body"})
+		return
+	}
+	gotUser, err := operations.FindUser(body)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": gotUser.UUID,
+		"exp": time.Now().Add(time.Hour).Unix(),
+	})
+	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET")))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create token"})
+		return
+	}
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("Authorization", tokenString, 3600, "", "", false, true)
+	c.SetCookie("uuid", gotUser.UUID, 3600, "", "", false, true)
+	c.Status(http.StatusOK)
+	return
+}
+
+func Validate(c *gin.Context) {
+	user, _ := c.Get("user")
+	c.JSON(http.StatusOK, gin.H{"user": user})
 }
