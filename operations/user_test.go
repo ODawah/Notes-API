@@ -24,6 +24,7 @@ func TestCreateUser(t *testing.T) {
 
 	tests := []test{
 		{name: "normal User", input: schemas.User{Email: "test@gmail.com", Password: "ping pong"}, expected: &schemas.User{Email: "test@gmail.com", Password: "ping pong"}, err: nil},
+
 		{name: "empty User", input: schemas.User{}, expected: nil, err: fmt.Errorf("invalid email address")},
 		{name: "invalid email", input: schemas.User{Email: "asdafs@.com", Password: "ping pong"}, expected: nil, err: fmt.Errorf("invalid email address")},
 		{name: "no password", input: schemas.User{Email: "test@test.com", Password: ""}, expected: nil, err: fmt.Errorf("empty password")},

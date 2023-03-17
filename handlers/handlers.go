@@ -12,12 +12,18 @@ import (
 )
 
 func CreateNote(c *gin.Context) {
+	uuid, err := c.Cookie("uuid")
+	if err != nil {
+		c.JSON(401, gin.H{"error": "UnAuthorized"})
+		return
+	}
 	var input schemas.Note
-	err := c.ShouldBindJSON(&input)
+	err = c.ShouldBindJSON(&input)
 	if err != nil {
 		c.JSON(400, gin.H{"error": "couldn't bind json"})
 		return
 	}
+	input.UserUuid = uuid
 	note, err := operations.CreateNote(input)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
@@ -27,13 +33,18 @@ func CreateNote(c *gin.Context) {
 }
 
 func FindNoteByTitle(c *gin.Context) {
+	uuid, err := c.Cookie("uuid")
+	if err != nil {
+		c.JSON(401, gin.H{"error": "UnAuthorized"})
+		return
+	}
 	var input schemas.GetNote
-	err := c.ShouldBindJSON(&input)
+	err = c.ShouldBindJSON(&input)
 	if err != nil {
 		c.JSON(400, gin.H{"error": "couldn't bind json"})
 		return
 	}
-	note, err := operations.FindNoteByTitle(input.Title)
+	note, err := operations.FindNoteByTitle(input.Title, uuid)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -42,7 +53,12 @@ func FindNoteByTitle(c *gin.Context) {
 }
 
 func GetAllNotes(c *gin.Context) {
-	notes, err := operations.FindNotes()
+	uuid, err := c.Cookie("uuid")
+	if err != nil {
+		c.JSON(401, gin.H{"error": err.Error()})
+		return
+	}
+	notes, err := operations.FindNotes(uuid)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -51,8 +67,13 @@ func GetAllNotes(c *gin.Context) {
 }
 
 func DeleteNoteByUUID(c *gin.Context) {
+	userUuid, err := c.Cookie("uuid")
+	if err != nil {
+		c.JSON(401, gin.H{"error": "UnAuthorized"})
+		return
+	}
 	uuid := c.Param("uuid")
-	n, err := operations.DeleteNote(uuid)
+	n, err := operations.DeleteNote(uuid, userUuid)
 	if err != nil || n != 1 {
 		c.JSON(400, err.Error())
 		return
@@ -63,11 +84,17 @@ func DeleteNoteByUUID(c *gin.Context) {
 
 func UpdateNoteByUUID(c *gin.Context) {
 	var input schemas.Note
-	err := c.ShouldBindJSON(&input)
+	userUuid, err := c.Cookie("uuid")
+	if err != nil {
+		c.JSON(401, gin.H{"error": "UnAuthorized"})
+		return
+	}
+	err = c.ShouldBindJSON(&input)
 	if err != nil {
 		c.JSON(400, gin.H{"error": "couldn't bind json"})
 		return
 	}
+	input.UserUuid = userUuid
 	rows, err := operations.UpdateNote(input.UUID, input)
 	if err != nil || rows != 1 {
 		c.JSON(400, gin.H{"error": err.Error()})

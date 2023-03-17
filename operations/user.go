@@ -27,6 +27,9 @@ func CreateUser(user schemas.User) (*schemas.User, error) {
 	}
 	user.Password = hashed
 	_, err = database.DB.Exec("INSERT INTO users(uuid,email,password) VALUES (?,?,?)", uuid, user.Email, user.Password)
+	if err != nil {
+		return nil, err
+	}
 	user.UUID = uuid
 	return &user, nil
 }

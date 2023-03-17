@@ -1,9 +1,10 @@
 package schemas
 
 type Note struct {
-	UUID  string `json:"uuid"`
-	Title string `json:"title"`
-	Text  string `json:"text"`
+	UUID     string `json:"uuid"`
+	Title    string `json:"title"`
+	Text     string `json:"text"`
+	UserUuid string `json:"user_uuid"`
 }
 
 type AllNotes struct {
