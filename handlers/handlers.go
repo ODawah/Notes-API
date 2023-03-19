@@ -109,12 +109,16 @@ func SignUp(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
 		return
 	}
+	if body.Email == "" || body.Password == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email or Password is empty"})
+		return
+	}
 	_, err := operations.CreateUser(body)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.Status(http.StatusOK)
+	c.JSON(http.StatusOK, gin.H{"message": "signed up"})
 	return
 }
 
