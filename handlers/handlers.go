@@ -128,6 +128,10 @@ func Login(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "Failed to read body"})
 		return
 	}
+	if body.Email == "" || body.Password == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email or Password is empty"})
+		return
+	}
 	gotUser, err := operations.FindUser(body)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
@@ -146,11 +150,6 @@ func Login(c *gin.Context) {
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("Authorization", tokenString, 3600, "", "", false, true)
 	c.SetCookie("uuid", gotUser.UUID, 3600, "", "", false, true)
-	c.Status(http.StatusOK)
+	c.JSON(http.StatusOK, gin.H{"message": "logged in"})
 	return
-}
-
-func Validate(c *gin.Context) {
-	user, _ := c.Get("user")
-	c.JSON(http.StatusOK, gin.H{"user": user})
 }

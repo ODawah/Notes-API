@@ -36,12 +36,14 @@ func CreateUser(user schemas.User) (*schemas.User, error) {
 
 func FindUser(user schemas.User) (*schemas.User, error) {
 	var dbUser schemas.User
-	if user.Email == "" {
-		return nil, errors.New("empty email")
-	} else if user.Password == "" {
+	_, err := mail.ParseAddress(user.Email)
+	if err != nil {
+		return nil, errors.New("invalid email address")
+	}
+	if user.Password == "" {
 		return nil, errors.New("empty password")
 	}
-	err := database.DB.QueryRow("SELECT uuid,email,password FROM users WHERE email = ?", user.Email).Scan(&dbUser.UUID, &dbUser.Email, &dbUser.Password)
+	err = database.DB.QueryRow("SELECT uuid,email,password FROM users WHERE email = ?", user.Email).Scan(&dbUser.UUID, &dbUser.Email, &dbUser.Password)
 	if err != nil {
 		return nil, errors.New("user not found")
 	}
