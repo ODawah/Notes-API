@@ -6,7 +6,7 @@
 *.env
 
 *.out
-
+*.db
 go.work
 /.idea
 Footer

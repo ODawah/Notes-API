@@ -1,10 +1,16 @@
 package schemas
 
+import (
+	"gorm.io/gorm"
+)
+
 type Note struct {
-	UUID     string `json:"uuid"`
+	gorm.Model
+	UUID     string `gorm:"primary_key" json:"uuid"`
 	Title    string `json:"title"`
 	Text     string `json:"text"`
 	UserUuid string `json:"user_uuid"`
+	user     User   `gorm:"foreignKey:UserUuid"`
 }
 
 type AllNotes struct {
