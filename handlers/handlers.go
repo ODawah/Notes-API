@@ -73,8 +73,8 @@ func DeleteNoteByUUID(c *gin.Context) {
 		return
 	}
 	uuid := c.Param("uuid")
-	n, err := operations.DeleteNote(uuid, userUuid)
-	if err != nil || n != 1 {
+	err = operations.DeleteNote(uuid, userUuid)
+	if err != nil {
 		c.JSON(400, err.Error())
 		return
 	}
@@ -95,8 +95,8 @@ func UpdateNoteByUUID(c *gin.Context) {
 		return
 	}
 	input.UserUuid = userUuid
-	rows, err := operations.UpdateNote(input.UUID, input)
-	if err != nil || rows != 1 {
+	err = operations.UpdateNote(input)
+	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
