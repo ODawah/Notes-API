@@ -2,7 +2,6 @@ package operations
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/Notes-App/database"
@@ -29,11 +28,11 @@ func CreateNote(note schemas.Note) (*schemas.Note, error) {
 		return nil, errors.New("invalid user uuid")
 	}
 	uuid := generators.UUIDGenerator()
-	_, err = database.DB.Exec("INSERT INTO notes(uuid,title, note_text, user_uuid) VALUES (?,?,?,?)", uuid, note.Title, note.Text, note.UserUuid)
+	note.UUID = uuid
+	database.DB.Create(&note)
 	if err != nil {
 		return nil, err
 	}
-	note.UUID = uuid
 
 	return &note, nil
 }
@@ -49,84 +48,56 @@ func FindNoteByTitle(title string, userUuid string) (*schemas.Note, error) {
 	}
 	title = strings.TrimSpace(strings.ToLower(title))
 	var note schemas.Note
-	err = database.DB.QueryRow("SELECT * FROM notes WHERE user_uuid = ? AND (title LIKE ?)", userUuid, title).Scan(&note.UUID, &note.Title, &note.Text, &note.UserUuid)
+	err = database.DB.Where("title LIKE ? AND user_uuid = ?", title, userUuid).First(&note).Error
 	if err != nil {
 		return nil, err
 	}
 	return &note, nil
 }
 
-func DeleteNote(UUID, userUuid string) (int, error) {
+func DeleteNote(UUID, userUuid string) error {
 	_, err := FindUserByUUID(userUuid)
 	if err != nil {
-		return 0, err
+		return err
 	}
 	valid := validators.IsUUIDValid(UUID)
 	if !valid {
-		return 0, errors.New("invalid UUID")
+		return errors.New("invalid UUID")
 	}
-	res, err := database.DB.Exec("DELETE FROM notes WHERE uuid = ? AND user_uuid = ?", UUID, userUuid)
-	if err != nil {
-		return 0, err
+	rows := database.DB.Where("uuid = ? AND user_uuid = ?", UUID, userUuid).Delete(&schemas.Note{})
+	if rows.RowsAffected == 0 {
+		return errors.New("note not found")
 	}
-	n, _ := res.RowsAffected()
-	if n == 0 {
-		return 0, errors.New("note not found")
-	}
-	return int(n), nil
+
+	return nil
 }
 
-func UpdateNote(UUID string, note schemas.Note) (int, error) {
+func UpdateNote(note schemas.Note) error {
 	_, err := FindUserByUUID(note.UserUuid)
 	if err != nil {
-		return 0, err
+		return err
 	}
-	var query string
-	valid := validators.IsUUIDValid(UUID)
+	valid := validators.IsUUIDValid(note.UUID)
 	if !valid {
-		return 0, errors.New("invalid UUID")
+		return errors.New("invalid UUID")
 	}
 	note.Text = strings.TrimSpace(strings.ToLower(note.Text))
 	note.Title = strings.TrimSpace(strings.ToLower(note.Title))
-	if note.Title == "" && note.Text != "" {
-		query = fmt.Sprintf("UPDATE notes set note_text = \"%s\" WHERE uuid = \"%s\" AND user_uuid = \"%s\" ", note.Text, UUID, note.UserUuid)
-	} else if note.Text == "" && note.Title != "" {
-		query = fmt.Sprintf("UPDATE notes set title = \"%s\" WHERE uuid = \"%s\" AND user_uuid = \"%s\"", note.Title, UUID, note.UserUuid)
-	} else if note.Text != "" && note.Title != "" {
-		query = fmt.Sprintf("UPDATE notes set title = \"%s\", note_text = \"%s\" WHERE uuid = \"%s\" AND user_uuid = \"%s\"", note.Title, note.Text, UUID, note.UserUuid)
+	rows := database.DB.Model(&schemas.Note{}).Where("uuid = ? AND user_uuid = ?", note.UUID, note.UserUuid).Updates(note)
+	if rows.RowsAffected == 0 {
+		return errors.New("note not found")
 	}
-	if query == "" {
-		return 0, errors.New("empty updates")
-	}
-	res, err := database.DB.Exec(query)
-	if err != nil {
-		return 0, err
-	}
-	n, _ := res.RowsAffected()
-	if n == 0 {
-		return 0, errors.New("note not found")
-	}
-	return int(n), nil
+
+	return nil
 
 }
 
-func FindNotes(uuid string) (*schemas.AllNotes, error) {
+func FindNotes(uuid string) ([]schemas.Note, error) {
 	_, err := FindUserByUUID(uuid)
 	if err != nil {
 		return nil, err
 	}
-	rows, err := database.DB.Query("SELECT * FROM notes WHERE user_uuid = ?", uuid)
-	if err != nil {
-		return nil, err
-	}
-	var res schemas.AllNotes
-	for rows.Next() {
-		var note schemas.Note
-		err = rows.Scan(&note.UUID, &note.Title, &note.Text, &note.UserUuid)
-		if err != nil {
-			return nil, err
-		}
-		res.Notes = append(res.Notes, note)
-	}
-	return &res, nil
+	var res []schemas.Note
+	database.DB.Where("user_uuid = ?", uuid).Find(&res)
+	return res, nil
 }

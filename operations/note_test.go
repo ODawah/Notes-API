@@ -19,7 +19,7 @@ func TestCreateNote(t *testing.T) {
 	longTitle := "then you sure as hell don't deserve me at my best.I'm selfish, impatient and a little insecure. I make mistakes, I am out of control and at times hard"
 	longText := "I'm selfish, I'm selfish, impatient and a little insecure. I make mistakes, I am out of control and at times hard to handle. But if you can't handle me at my worst, then you sure as hell don' deserve me at my b.I'm selfish, impatient and a little insecure. I make mistakes, I am out of control and at times hardimpatient and a little insecure. I make mistakes, I am out of control and at times hard to handle. But if you can't handle me at my worst, then you sure as hell don't deserve me at my best.I'm selfish, impatient and a little insecure. I make mistakes, I am out of control and at times hard"
 
-	u, _ := CreateUser(schemas.User{Email: "test@test.com", Password: "sgsersdfvsdsfaaa"})
+	u, _ := CreateUser(schemas.User{Email: "test@test.com", Password: "test password"})
 
 	type test struct {
 		name     string
@@ -45,7 +45,7 @@ func TestCreateNote(t *testing.T) {
 		}
 		if got == nil && tc.err == nil {
 			t.Log(tc.name)
-			t.Fatalf("got: %s    expected:%s", got, tc.err)
+			t.Fatalf("got: %v    expected:%v", got, tc.err)
 		}
 		if got != nil {
 			if got.Text != tc.expected.Text {
@@ -101,7 +101,7 @@ func TestFindNoteByTitle(t *testing.T) {
 		got, err := FindNoteByTitle(tc.searchTitle, tc.uuid)
 		if fmt.Sprint(err) != fmt.Sprint(tc.err) {
 			t.Log(tc.name)
-			t.Fatalf("got: %s    expected:%s", err, tc.err)
+			t.Fatalf("got: %s  expected:%s", err, tc.err)
 		}
 		if tc.expected != nil && got != nil {
 			if validators.IsUUIDValid(got.UUID) == false {
@@ -136,30 +136,25 @@ func TestDeleteNote(t *testing.T) {
 	n2, _ := CreateNote(schemas.Note{Title: "finish the tasks", Text: "create the API", UserUuid: u.UUID})
 
 	type test struct {
-		name     string
-		input    string
-		uuid     string
-		expected int
-		err      error
+		name  string
+		input string
+		uuid  string
+		err   error
 	}
 
 	tests := []test{
-		{name: "normal note uuid", input: n1.UUID, uuid: u.UUID, expected: 1, err: nil},
-		{name: "normal note wrong uuid", input: n2.UUID, uuid: "6a3f5046-7d3f-11ed-a1eb-0242ac120002", expected: 0, err: errors.New("user not found")},
-		{name: "normal note uuid", input: n2.UUID, uuid: u.UUID, expected: 1, err: nil},
-		{name: "no uuid", input: "", expected: 0, uuid: u.UUID, err: errors.New("invalid UUID")},
-		{name: "uuid not in db", input: "6a3f5046-7d3f-11ed-a1eb-0242ac120002", uuid: u.UUID, expected: 0, err: errors.New("note not found")},
+		{name: "normal note uuid", input: n1.UUID, uuid: u.UUID, err: nil},
+		{name: "normal note wrong uuid", input: n2.UUID, uuid: "6a3f5046-7d3f-11ed-a1eb-0242ac120002", err: errors.New("user not found")},
+		{name: "normal note uuid", input: n2.UUID, uuid: u.UUID, err: nil},
+		{name: "no uuid", input: "", uuid: u.UUID, err: errors.New("invalid UUID")},
+		{name: "uuid not in db", input: "6a3f5046-7d3f-11ed-a1ed-0242ac130002", uuid: u.UUID, err: errors.New("note not found")},
 	}
 
 	for _, tc := range tests {
-		got, err := DeleteNote(tc.input, tc.uuid)
+		err := DeleteNote(tc.input, tc.uuid)
 		if fmt.Sprint(err) != fmt.Sprint(tc.err) {
 			t.Log(tc.name)
-			t.Fatalf("got: %s    expected:%s", err, tc.err)
-		}
-		if got != tc.expected {
-			t.Log(tc.name)
-			t.Fatalf("got: %d    expected:%d", got, tc.expected)
+			t.Fatalf("got: %v    expected:%v", err, tc.err)
 		}
 	}
 
@@ -176,28 +171,23 @@ func TestUpdateNote(t *testing.T) {
 	n2, _ := CreateNote(schemas.Note{Title: "finish the tasks", Text: "create the API", UserUuid: u.UUID})
 
 	type test struct {
-		name     string
-		uuid     string
-		input    schemas.Note
-		expected int
-		err      error
+		name  string
+		uuid  string
+		input schemas.Note
+		err   error
 	}
 
 	tests := []test{
-		{name: "normal note updates", uuid: n1.UUID, input: schemas.Note{Title: "updated title", Text: "updated text", UserUuid: u.UUID}, expected: 1, err: nil},
-		{name: "title update only", uuid: n1.UUID, input: schemas.Note{Title: "updated title", Text: "updated text", UserUuid: u.UUID}, expected: 1, err: nil},
-		{name: "text update only", uuid: n2.UUID, input: schemas.Note{Title: "updated title", Text: "updated text", UserUuid: u.UUID}, expected: 1, err: nil},
-		{name: "text update with wrong user uuid", uuid: n2.UUID, input: schemas.Note{Title: "updated title", Text: "updated text", UserUuid: "6a3f5046-7d3f-11ed-a1eb-0242ac120002"}, expected: 0, err: errors.New("user not found")},
-		{name: "no uuid", uuid: "", input: schemas.Note{Title: "updated title", Text: "updated text", UserUuid: u.UUID}, expected: 0, err: errors.New("invalid UUID")},
-		{name: "empty update", uuid: n2.UUID, input: schemas.Note{Title: "", Text: "", UserUuid: u.UUID}, expected: 0, err: errors.New("empty updates")},
+		{name: "normal note updates", input: schemas.Note{UUID: n1.UUID, Title: "updated title", Text: "updated text", UserUuid: u.UUID}, err: nil},
+		{name: "title update only", input: schemas.Note{UUID: n1.UUID, Title: "updated title", Text: "updated text", UserUuid: u.UUID}, err: nil},
+		{name: "text update only", input: schemas.Note{UUID: n2.UUID, Title: "updated title", Text: "updated text", UserUuid: u.UUID}, err: nil},
+		{name: "text update with wrong user uuid", input: schemas.Note{UUID: n2.UUID, Title: "updated title", Text: "updated text", UserUuid: "6a3f5046-7d3f-11ed-a1eb-0242ac120002"}, err: errors.New("user not found")},
+		{name: "no uuid", input: schemas.Note{UUID: "", Title: "updated title", Text: "updated text", UserUuid: u.UUID}, err: errors.New("invalid UUID")},
+		{name: "empty update", input: schemas.Note{UUID: n2.UUID, Title: "", Text: "", UserUuid: u.UUID}, err: nil},
 	}
 
 	for _, tc := range tests {
-		got, err := UpdateNote(tc.uuid, tc.input)
-		if got != tc.expected {
-			t.Log(tc.name)
-			t.Fatalf("got: %d    expected:%d", got, tc.expected)
-		}
+		err := UpdateNote(tc.input)
 		if fmt.Sprint(err) != fmt.Sprint(tc.err) {
 			t.Log(tc.name)
 			t.Fatalf("got: %s    expected:%s", err, tc.err)
@@ -214,16 +204,17 @@ func TestFindNotes(t *testing.T) {
 	defer database.CleanUp()
 	u, _ := CreateUser(schemas.User{Email: "test@test.com", Password: "sgsersdfvsdsfaaa"})
 	CreateNote(schemas.Note{Title: "Test Title", Text: "Test Text", UserUuid: u.UUID})
+	CreateNote(schemas.Note{Title: "Test Title2", Text: "Test Text2", UserUuid: u.UUID})
 
 	type test struct {
 		name     string
 		userUuid string
-		expected *schemas.Note
+		expected []schemas.Note
 		err      error
 	}
 
 	tests := []test{
-		{name: "normal user uuid", userUuid: u.UUID, expected: &schemas.Note{Title: "test title", Text: "test text", UserUuid: u.UUID}, err: nil},
+		{name: "normal user uuid", userUuid: u.UUID, expected: []schemas.Note{{Title: "test title", Text: "test text", UserUuid: u.UUID}, {Title: "test title2", Text: "test text2", UserUuid: u.UUID}}, err: nil},
 		{name: "no user uuid", userUuid: "", expected: nil, err: errors.New("invalid uuid")},
 		{name: "wrong user uuid", userUuid: "6a3f5046-7d3f-11ed-a1eb-0242ac120002", expected: nil, err: errors.New("user not found")},
 	}
@@ -235,23 +226,22 @@ func TestFindNotes(t *testing.T) {
 			t.Fatalf("got: %s    expected:%s", err, tc.err)
 		}
 		if got != nil {
-			for _, note := range got.Notes {
+			for i, note := range got {
 				if tc.expected != nil && got != nil {
 					if validators.IsUUIDValid(note.UUID) == false {
 						t.Log(tc.name)
 						t.Fatalf("got invalid uuid: %s", note.UUID)
 					}
-					if note.Text != tc.expected.Text {
+					if note.Text != tc.expected[i].Text {
 						t.Log(tc.name)
-						t.Fatalf("got: %s    expected:%s", note.Text, tc.expected.Text)
+						t.Fatalf("got: %s    expected:%s", note.Text, tc.expected[i].Text)
 					}
-					if note.Title != tc.expected.Title {
+					if note.Title != tc.expected[i].Title {
 						t.Log(tc.name)
-						t.Fatalf("got: %s    expected:%s", note.Title, tc.expected.Title)
+						t.Fatalf("got: %s    expected:%s", note.Title, tc.expected[i].Title)
 					}
 				}
 			}
-
 		}
 	}
 }
