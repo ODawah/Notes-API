@@ -26,16 +26,13 @@ func CreateUser(user schemas.User) (*schemas.User, error) {
 		return nil, err
 	}
 	user.Password = hashed
-	_, err = database.DB.Exec("INSERT INTO users(uuid,email,password) VALUES (?,?,?)", uuid, user.Email, user.Password)
-	if err != nil {
-		return nil, err
-	}
 	user.UUID = uuid
+	database.DB.Create(&user)
 	return &user, nil
 }
 
 func FindUser(user schemas.User) (*schemas.User, error) {
-	var dbUser schemas.User
+	var dbUser *schemas.User
 	_, err := mail.ParseAddress(user.Email)
 	if err != nil {
 		return nil, errors.New("invalid email address")
@@ -43,7 +40,7 @@ func FindUser(user schemas.User) (*schemas.User, error) {
 	if user.Password == "" {
 		return nil, errors.New("empty password")
 	}
-	err = database.DB.QueryRow("SELECT uuid,email,password FROM users WHERE email = ?", user.Email).Scan(&dbUser.UUID, &dbUser.Email, &dbUser.Password)
+	err = database.DB.Where("email = ?", user.Email).First(&dbUser).Error
 	if err != nil {
 		return nil, errors.New("user not found")
 	}
@@ -51,7 +48,7 @@ func FindUser(user schemas.User) (*schemas.User, error) {
 	if err != nil {
 		return nil, errors.New("wrong password")
 	}
-	return &dbUser, nil
+	return dbUser, nil
 }
 
 func FindUserByUUID(uuid string) (*schemas.User, error) {
@@ -59,7 +56,7 @@ func FindUserByUUID(uuid string) (*schemas.User, error) {
 	if !validators.IsUUIDValid(uuid) {
 		return nil, errors.New("invalid uuid")
 	}
-	err := database.DB.QueryRow("SELECT uuid,email,password FROM users WHERE uuid = ?", uuid).Scan(&dbUser.UUID, &dbUser.Email, &dbUser.Password)
+	err := database.DB.Where("uuid = ?", uuid).First(&dbUser).Error
 	if err != nil || &dbUser == nil {
 		return nil, errors.New("user not found")
 	}

@@ -24,7 +24,6 @@ func TestCreateUser(t *testing.T) {
 
 	tests := []test{
 		{name: "normal User", input: schemas.User{Email: "test@gmail.com", Password: "ping pong"}, expected: &schemas.User{Email: "test@gmail.com", Password: "ping pong"}, err: nil},
-
 		{name: "empty User", input: schemas.User{}, expected: nil, err: fmt.Errorf("invalid email address")},
 		{name: "invalid email", input: schemas.User{Email: "asdafs@.com", Password: "ping pong"}, expected: nil, err: fmt.Errorf("invalid email address")},
 		{name: "no password", input: schemas.User{Email: "test@test.com", Password: ""}, expected: nil, err: fmt.Errorf("empty password")},
@@ -32,22 +31,24 @@ func TestCreateUser(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Log(tc.name)
-		got, err := CreateUser(tc.input)
+		_, err := CreateUser(tc.input)
 		if fmt.Sprint(err) != fmt.Sprint(tc.err) {
 			t.Fatalf("got: %s    expected:%s", err, tc.err)
 		}
-		if got == nil && tc.err == nil {
-			t.Fatalf("got: %s    expected:%s", got, tc.expected)
+		var result *schemas.User
+		database.DB.First(&result, "email = ?", tc.input.Email)
+		if result == nil && tc.err == nil {
+			t.Fatalf("got: %v    expected:%v", result, *tc.expected)
 		}
-		if got != nil && tc.expected != nil {
-			if !validators.IsUUIDValid(got.UUID) {
-				t.Fatalf("got invalid uuid: %s", got.UUID)
+		if result != nil && tc.expected != nil {
+			if !validators.IsUUIDValid(result.UUID) {
+				t.Fatalf("got invalid uuid: %s", result.UUID)
 			}
-			if got.Email != tc.expected.Email {
-				t.Fatalf("got: %s    expected:%s", got.Email, tc.expected.Email)
+			if result.Email != tc.expected.Email {
+				t.Fatalf("got: %s    expected:%s", result.Email, tc.expected.Email)
 			}
-			if got.Password == tc.expected.Password {
-				t.Fatalf("got: %s    expected:%s", got.Password, tc.expected.Password)
+			if result.Password == tc.expected.Password {
+				t.Fatalf("got: %s    expected:%s", result.Password, tc.expected.Password)
 			}
 		}
 	}
@@ -77,8 +78,8 @@ func TestFindUser(t *testing.T) {
 
 	tests := []test{
 		{name: "normal user", input: schemas.User{Email: "test@gmail.com", Password: "ping pong"}, expected: &schemas.User{Email: "test@gmail.com", Password: "ping pong"}, err: nil},
-		{name: "empty user", input: schemas.User{}, expected: nil, err: fmt.Errorf("empty email")},
-		{name: "empty email", input: schemas.User{Password: "ping pong"}, expected: nil, err: fmt.Errorf("empty email")},
+		{name: "empty user", input: schemas.User{}, expected: nil, err: fmt.Errorf("invalid email address")},
+		{name: "empty email", input: schemas.User{Password: "ping pong"}, expected: nil, err: fmt.Errorf("invalid email address")},
 		{name: "empty password", input: schemas.User{Email: "test@gmail.com"}, expected: nil, err: fmt.Errorf("empty password")},
 		{name: "unsigned user", input: schemas.User{Email: "test3@gmail.com", Password: "ping pong"}, expected: nil, err: fmt.Errorf("user not found")},
 		{name: "wrong user", input: schemas.User{Email: "test2@gmail.com", Password: "wrong password"}, expected: nil, err: fmt.Errorf("wrong password")},
@@ -91,7 +92,7 @@ func TestFindUser(t *testing.T) {
 			t.Fatalf("got: %s    expected:%s", err, tc.err)
 		}
 		if got == nil && tc.err == nil {
-			t.Fatalf("got: %s    expected:%s", got, tc.expected)
+			t.Fatalf("got: %v    expected:%v", got, tc.expected)
 		}
 		if got != nil && tc.expected != nil {
 			if !validators.IsUUIDValid(got.UUID) {
@@ -143,7 +144,7 @@ func TestFindUserByUUID(t *testing.T) {
 			t.Fatalf("got: %s    expected:%s", err, tc.err)
 		}
 		if got == nil && tc.err == nil {
-			t.Fatalf("got: %s    expected:%s", got, tc.expected)
+			t.Fatalf("got: %v    expected:%v", got, tc.expected)
 		}
 		if got != nil && tc.expected != nil {
 			if !validators.IsUUIDValid(got.UUID) {
