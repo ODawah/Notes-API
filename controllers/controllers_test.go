@@ -1,4 +1,4 @@
-package handlers
+package controllers
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 
 	"github.com/Notes-App/database"
 	"github.com/Notes-App/middleware"
-	"github.com/Notes-App/schemas"
+	"github.com/Notes-App/models"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
@@ -36,7 +36,7 @@ func TestSignUp(t *testing.T) {
 	defer database.CleanUp()
 	type test struct {
 		name     string
-		input    schemas.User
+		input    models.User
 		response string
 		code     int
 	}
@@ -44,10 +44,10 @@ func TestSignUp(t *testing.T) {
 	r := SetUpRouter()
 
 	tests := []test{
-		{name: "normal request", input: schemas.User{Email: "test@test.com", Password: "test123"}, response: `{"message":"signed up"}`, code: http.StatusOK},
-		{name: "empty request", input: schemas.User{}, response: `{"error":"Email or Password is empty"}`, code: http.StatusBadRequest},
-		{name: "wrong email", input: schemas.User{Email: "test.com", Password: "test123"}, response: `{"error":"invalid email address"}`, code: http.StatusBadRequest},
-		{name: "empty password", input: schemas.User{Email: "test@test.com", Password: ""}, response: `{"error":"Email or Password is empty"}`, code: http.StatusBadRequest},
+		{name: "normal request", input: models.User{Email: "test@test.com", Password: "test123"}, response: `{"message":"signed up"}`, code: http.StatusOK},
+		{name: "empty request", input: models.User{}, response: `{"error":"Email or Password is empty"}`, code: http.StatusBadRequest},
+		{name: "wrong email", input: models.User{Email: "test.com", Password: "test123"}, response: `{"error":"invalid email address"}`, code: http.StatusBadRequest},
+		{name: "empty password", input: models.User{Email: "test@test.com", Password: ""}, response: `{"error":"Email or Password is empty"}`, code: http.StatusBadRequest},
 	}
 
 	for _, tc := range tests {
@@ -72,25 +72,25 @@ func TestLogin(t *testing.T) {
 	defer database.CleanUp()
 	type test struct {
 		name     string
-		input    schemas.User
+		input    models.User
 		response string
 		code     int
 	}
 
 	r := SetUpRouter()
-	user := schemas.User{Email: "test@test.com", Password: "test123"}
+	user := models.User{Email: "test@test.com", Password: "test123"}
 	jsonValue, _ := json.Marshal(user)
 	req, _ := http.NewRequest("POST", "/signup", bytes.NewBuffer(jsonValue))
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
 	tests := []test{
-		{name: "normal login", input: schemas.User{Email: "test@test.com", Password: "test123"}, response: `{"message":"logged in"}`, code: http.StatusOK},
-		{name: "empty request", input: schemas.User{}, response: `{"error":"Email or Password is empty"}`, code: http.StatusBadRequest},
-		{name: "wrong email", input: schemas.User{Email: "test.com", Password: "test123"}, response: `{"error":"invalid email address"}`, code: http.StatusBadRequest},
-		{name: "empty password", input: schemas.User{Email: "test@test.com", Password: ""}, response: `{"error":"Email or Password is empty"}`, code: http.StatusBadRequest},
-		{name: "wrong user password", input: schemas.User{Email: "test@test.com", Password: "wrong password"}, response: `{"error":"wrong password"}`, code: http.StatusBadRequest},
-		{name: "unregistered user", input: schemas.User{Email: "test@gdxz.com", Password: "test123"}, response: `{"error":"user not found"}`, code: http.StatusBadRequest},
+		{name: "normal login", input: models.User{Email: "test@test.com", Password: "test123"}, response: `{"message":"logged in"}`, code: http.StatusOK},
+		{name: "empty request", input: models.User{}, response: `{"error":"Email or Password is empty"}`, code: http.StatusBadRequest},
+		{name: "wrong email", input: models.User{Email: "test.com", Password: "test123"}, response: `{"error":"invalid email address"}`, code: http.StatusBadRequest},
+		{name: "empty password", input: models.User{Email: "test@test.com", Password: ""}, response: `{"error":"Email or Password is empty"}`, code: http.StatusBadRequest},
+		{name: "wrong user password", input: models.User{Email: "test@test.com", Password: "wrong password"}, response: `{"error":"wrong password"}`, code: http.StatusBadRequest},
+		{name: "unregistered user", input: models.User{Email: "test@gdxz.com", Password: "test123"}, response: `{"error":"user not found"}`, code: http.StatusBadRequest},
 	}
 
 	for _, tc := range tests {

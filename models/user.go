@@ -1,4 +1,4 @@
-package operations
+package models
 
 import (
 	"errors"
@@ -7,12 +7,18 @@ import (
 	"github.com/Notes-App/database"
 	"github.com/Notes-App/encrypt"
 	"github.com/Notes-App/generators"
-	"github.com/Notes-App/schemas"
-	"github.com/Notes-App/validators"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
-func CreateUser(user schemas.User) (*schemas.User, error) {
+type User struct {
+	gorm.Model
+	UUID     string `gorm:"primary_key" json:"uuid"`
+	Email    string `gorm:"unique" json:"email"`
+	Password string `json:"password"`
+}
+
+func CreateUser(user User) (*User, error) {
 	_, err := mail.ParseAddress(user.Email)
 	if err != nil {
 		return nil, errors.New("invalid email address")
@@ -31,8 +37,8 @@ func CreateUser(user schemas.User) (*schemas.User, error) {
 	return &user, nil
 }
 
-func FindUser(user schemas.User) (*schemas.User, error) {
-	var dbUser *schemas.User
+func FindUser(user User) (*User, error) {
+	var dbUser *User
 	_, err := mail.ParseAddress(user.Email)
 	if err != nil {
 		return nil, errors.New("invalid email address")
@@ -51,9 +57,9 @@ func FindUser(user schemas.User) (*schemas.User, error) {
 	return dbUser, nil
 }
 
-func FindUserByUUID(uuid string) (*schemas.User, error) {
-	var dbUser schemas.User
-	if !validators.IsUUIDValid(uuid) {
+func FindUserByUUID(uuid string) (*User, error) {
+	var dbUser User
+	if !IsUUIDValid(uuid) {
 		return nil, errors.New("invalid uuid")
 	}
 	err := database.DB.Where("uuid = ?", uuid).First(&dbUser).Error

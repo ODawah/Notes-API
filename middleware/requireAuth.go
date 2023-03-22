@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Notes-App/operations"
+	"github.com/Notes-App/models"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 )
@@ -35,7 +35,7 @@ func RequireAuth(c *gin.Context) {
 			fmt.Println("Token expired")
 			c.AbortWithStatus(http.StatusUnauthorized)
 		}
-		user, err := operations.FindUserByUUID(claims["sub"].(string))
+		user, err := models.FindUserByUUID(claims["sub"].(string))
 		if err != nil {
 			c.AbortWithStatus(http.StatusUnauthorized)
 		}

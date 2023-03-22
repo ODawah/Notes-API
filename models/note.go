@@ -1,4 +1,4 @@
-package operations
+package models
 
 import (
 	"errors"
@@ -6,17 +6,29 @@ import (
 
 	"github.com/Notes-App/database"
 	"github.com/Notes-App/generators"
-	"github.com/Notes-App/schemas"
-	"github.com/Notes-App/validators"
+	"gorm.io/gorm"
 )
 
-func CreateNote(note schemas.Note) (*schemas.Note, error) {
-	err := validators.IsValidText(note.Text)
+type Note struct {
+	gorm.Model
+	UUID     string `gorm:"primary_key" json:"uuid"`
+	Title    string `gorm:"unique" json:"title"`
+	Text     string `json:"text"`
+	UserUuid string `json:"user_uuid"`
+	user     User   `gorm:"foreignKey:UserUuid"`
+}
+
+type GetNote struct {
+	Title string `json:"title"`
+}
+
+func CreateNote(note Note) (*Note, error) {
+	err := IsValidText(note.Text)
 	if err != nil {
 		return nil, err
 	}
 	note.Text = strings.TrimSpace(strings.ToLower(note.Text))
-	err = validators.IsValidTitle(note.Title)
+	err = IsValidTitle(note.Title)
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +36,7 @@ func CreateNote(note schemas.Note) (*schemas.Note, error) {
 	if note.UserUuid == "" {
 		return nil, errors.New("user uuid is required")
 	}
-	if validators.IsUUIDValid(note.UserUuid) == false {
+	if IsUUIDValid(note.UserUuid) == false {
 		return nil, errors.New("invalid user uuid")
 	}
 	uuid := generators.UUIDGenerator()
@@ -37,17 +49,17 @@ func CreateNote(note schemas.Note) (*schemas.Note, error) {
 	return &note, nil
 }
 
-func FindNoteByTitle(title string, userUuid string) (*schemas.Note, error) {
+func FindNoteByTitle(title string, userUuid string) (*Note, error) {
 	_, err := FindUserByUUID(userUuid)
 	if err != nil {
 		return nil, err
 	}
-	err = validators.IsValidTitle(title)
+	err = IsValidTitle(title)
 	if err != nil {
 		return nil, err
 	}
 	title = strings.TrimSpace(strings.ToLower(title))
-	var note schemas.Note
+	var note Note
 	err = database.DB.Where("title LIKE ? AND user_uuid = ?", title, userUuid).First(&note).Error
 	if err != nil {
 		return nil, err
@@ -60,11 +72,11 @@ func DeleteNote(UUID, userUuid string) error {
 	if err != nil {
 		return err
 	}
-	valid := validators.IsUUIDValid(UUID)
+	valid := IsUUIDValid(UUID)
 	if !valid {
 		return errors.New("invalid UUID")
 	}
-	rows := database.DB.Where("uuid = ? AND user_uuid = ?", UUID, userUuid).Delete(&schemas.Note{})
+	rows := database.DB.Where("uuid = ? AND user_uuid = ?", UUID, userUuid).Delete(&Note{})
 	if rows.RowsAffected == 0 {
 		return errors.New("note not found")
 	}
@@ -72,18 +84,18 @@ func DeleteNote(UUID, userUuid string) error {
 	return nil
 }
 
-func UpdateNote(note schemas.Note) error {
+func UpdateNote(note Note) error {
 	_, err := FindUserByUUID(note.UserUuid)
 	if err != nil {
 		return err
 	}
-	valid := validators.IsUUIDValid(note.UUID)
+	valid := IsUUIDValid(note.UUID)
 	if !valid {
 		return errors.New("invalid UUID")
 	}
 	note.Text = strings.TrimSpace(strings.ToLower(note.Text))
 	note.Title = strings.TrimSpace(strings.ToLower(note.Title))
-	rows := database.DB.Model(&schemas.Note{}).Where("uuid = ? AND user_uuid = ?", note.UUID, note.UserUuid).Updates(note)
+	rows := database.DB.Model(&Note{}).Where("uuid = ? AND user_uuid = ?", note.UUID, note.UserUuid).Updates(note)
 	if rows.RowsAffected == 0 {
 		return errors.New("note not found")
 	}
@@ -92,12 +104,12 @@ func UpdateNote(note schemas.Note) error {
 
 }
 
-func FindNotes(uuid string) ([]schemas.Note, error) {
+func FindNotes(uuid string) ([]Note, error) {
 	_, err := FindUserByUUID(uuid)
 	if err != nil {
 		return nil, err
 	}
-	var res []schemas.Note
+	var res []Note
 	database.DB.Where("user_uuid = ?", uuid).Find(&res)
 	return res, nil
 }

@@ -1,12 +1,11 @@
-package handlers
+package controllers
 
 import (
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/Notes-App/operations"
-	"github.com/Notes-App/schemas"
+	"github.com/Notes-App/models"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 )
@@ -17,14 +16,14 @@ func CreateNote(c *gin.Context) {
 		c.JSON(401, gin.H{"error": "UnAuthorized"})
 		return
 	}
-	var input schemas.Note
+	var input models.Note
 	err = c.ShouldBindJSON(&input)
 	if err != nil {
 		c.JSON(400, gin.H{"error": "couldn't bind json"})
 		return
 	}
 	input.UserUuid = uuid
-	note, err := operations.CreateNote(input)
+	note, err := models.CreateNote(input)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -38,13 +37,13 @@ func FindNoteByTitle(c *gin.Context) {
 		c.JSON(401, gin.H{"error": "UnAuthorized"})
 		return
 	}
-	var input schemas.GetNote
+	var input models.GetNote
 	err = c.ShouldBindJSON(&input)
 	if err != nil {
 		c.JSON(400, gin.H{"error": "couldn't bind json"})
 		return
 	}
-	note, err := operations.FindNoteByTitle(input.Title, uuid)
+	note, err := models.FindNoteByTitle(input.Title, uuid)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -58,7 +57,7 @@ func GetAllNotes(c *gin.Context) {
 		c.JSON(401, gin.H{"error": err.Error()})
 		return
 	}
-	notes, err := operations.FindNotes(uuid)
+	notes, err := models.FindNotes(uuid)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -73,7 +72,7 @@ func DeleteNoteByUUID(c *gin.Context) {
 		return
 	}
 	uuid := c.Param("uuid")
-	err = operations.DeleteNote(uuid, userUuid)
+	err = models.DeleteNote(uuid, userUuid)
 	if err != nil {
 		c.JSON(400, err.Error())
 		return
@@ -83,7 +82,7 @@ func DeleteNoteByUUID(c *gin.Context) {
 }
 
 func UpdateNoteByUUID(c *gin.Context) {
-	var input schemas.Note
+	var input models.Note
 	userUuid, err := c.Cookie("uuid")
 	if err != nil {
 		c.JSON(401, gin.H{"error": "UnAuthorized"})
@@ -95,7 +94,7 @@ func UpdateNoteByUUID(c *gin.Context) {
 		return
 	}
 	input.UserUuid = userUuid
-	err = operations.UpdateNote(input)
+	err = models.UpdateNote(input)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -104,7 +103,7 @@ func UpdateNoteByUUID(c *gin.Context) {
 }
 
 func SignUp(c *gin.Context) {
-	var body schemas.User
+	var body models.User
 	if c.BindJSON(&body) != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read body"})
 		return
@@ -113,7 +112,7 @@ func SignUp(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Email or Password is empty"})
 		return
 	}
-	_, err := operations.CreateUser(body)
+	_, err := models.CreateUser(body)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -123,7 +122,7 @@ func SignUp(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
-	var body schemas.User
+	var body models.User
 	if c.BindJSON(&body) != nil {
 		c.JSON(400, gin.H{"error": "Failed to read body"})
 		return
@@ -132,7 +131,7 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Email or Password is empty"})
 		return
 	}
-	gotUser, err := operations.FindUser(body)
+	gotUser, err := models.FindUser(body)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
