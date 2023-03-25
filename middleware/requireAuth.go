@@ -13,11 +13,8 @@ import (
 
 func RequireAuth(c *gin.Context) {
 	fmt.Println("In middleware")
-	// GET Cookie  off req
-	tokenString, err := c.Cookie("Authorization")
-	if err != nil {
-		c.AbortWithStatus(http.StatusUnauthorized)
-	}
+	// GET Token off request Header
+	tokenString := c.GetHeader("Authorization")
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			fmt.Println("there's an error with the signing method")

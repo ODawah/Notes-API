@@ -4,16 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"testing"
-
-	"github.com/Notes-App/database"
 )
 
 func TestCreateNote(t *testing.T) {
-	dbErr := database.Connect()
+	dbErr := Connect()
 	if dbErr != nil {
 		t.Fatal(dbErr)
 	}
-	defer database.CleanUp()
+	defer CleanUp()
 	longTitle := "then you sure as hell don't deserve me at my best.I'm selfish, impatient and a little insecure. I make mistakes, I am out of control and at times hard"
 	longText := "I'm selfish, I'm selfish, impatient and a little insecure. I make mistakes, I am out of control and at times hard to handle. But if you can't handle me at my worst, then you sure as hell don' deserve me at my b.I'm selfish, impatient and a little insecure. I make mistakes, I am out of control and at times hardimpatient and a little insecure. I make mistakes, I am out of control and at times hard to handle. But if you can't handle me at my worst, then you sure as hell don't deserve me at my best.I'm selfish, impatient and a little insecure. I make mistakes, I am out of control and at times hard"
 
@@ -70,11 +68,11 @@ func TestCreateNote(t *testing.T) {
 
 func TestFindNoteByTitle(t *testing.T) {
 	longTitle := "then you sure as hell don't deserve me at my best.I'm selfish, impatient and a little insecure. I make mistakes, I am out of control and at times hard"
-	dbErr := database.Connect()
+	dbErr := Connect()
 	if dbErr != nil {
 		t.Fatal(dbErr)
 	}
-	defer database.CleanUp()
+	defer CleanUp()
 	u, _ := CreateUser(User{Email: "test@test.com", Password: "sgsersdfvsdsfaaa"})
 	CreateNote(Note{Title: "Test Title", Text: "Test Text", UserUuid: u.UUID})
 	CreateNote(Note{Title: "finish the tasks", Text: "create the API", UserUuid: u.UUID})
@@ -124,11 +122,11 @@ func TestFindNoteByTitle(t *testing.T) {
 }
 
 func TestDeleteNote(t *testing.T) {
-	dbErr := database.Connect()
+	dbErr := Connect()
 	if dbErr != nil {
 		t.Fatal(dbErr)
 	}
-	defer database.CleanUp()
+	defer CleanUp()
 	u, _ := CreateUser(User{Email: "test@test.com", Password: "sgsersdfvsdsfaaa"})
 	n1, _ := CreateNote(Note{Title: "Test Title", Text: "Test Text", UserUuid: u.UUID})
 	n2, _ := CreateNote(Note{Title: "finish the tasks", Text: "create the API", UserUuid: u.UUID})
@@ -159,11 +157,11 @@ func TestDeleteNote(t *testing.T) {
 }
 
 func TestUpdateNote(t *testing.T) {
-	dbErr := database.Connect()
+	dbErr := Connect()
 	if dbErr != nil {
 		t.Fatal(dbErr)
 	}
-	defer database.CleanUp()
+	defer CleanUp()
 	u, _ := CreateUser(User{Email: "test@test.com", Password: "sgsersdfvsdsfaaa"})
 	n1, _ := CreateNote(Note{Title: "Test Title", Text: "Test Text", UserUuid: u.UUID})
 	n2, _ := CreateNote(Note{Title: "finish the tasks", Text: "create the API", UserUuid: u.UUID})
@@ -195,11 +193,11 @@ func TestUpdateNote(t *testing.T) {
 }
 
 func TestFindNotes(t *testing.T) {
-	dbErr := database.Connect()
+	dbErr := Connect()
 	if dbErr != nil {
 		t.Fatal(dbErr)
 	}
-	defer database.CleanUp()
+	defer CleanUp()
 	u, _ := CreateUser(User{Email: "test@test.com", Password: "sgsersdfvsdsfaaa"})
 	CreateNote(Note{Title: "Test Title", Text: "Test Text", UserUuid: u.UUID})
 	CreateNote(Note{Title: "Test Title2", Text: "Test Text2", UserUuid: u.UUID})

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/Notes-App/database"
 	"github.com/Notes-App/generators"
 	"gorm.io/gorm"
 )
@@ -41,7 +40,7 @@ func CreateNote(note Note) (*Note, error) {
 	}
 	uuid := generators.UUIDGenerator()
 	note.UUID = uuid
-	database.DB.Create(&note)
+	DB.Create(&note)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +59,7 @@ func FindNoteByTitle(title string, userUuid string) (*Note, error) {
 	}
 	title = strings.TrimSpace(strings.ToLower(title))
 	var note Note
-	err = database.DB.Where("title LIKE ? AND user_uuid = ?", title, userUuid).First(&note).Error
+	err = DB.Where("title LIKE ? AND user_uuid = ?", title, userUuid).First(&note).Error
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +75,7 @@ func DeleteNote(UUID, userUuid string) error {
 	if !valid {
 		return errors.New("invalid UUID")
 	}
-	rows := database.DB.Where("uuid = ? AND user_uuid = ?", UUID, userUuid).Delete(&Note{})
+	rows := DB.Where("uuid = ? AND user_uuid = ?", UUID, userUuid).Delete(&Note{})
 	if rows.RowsAffected == 0 {
 		return errors.New("note not found")
 	}
@@ -95,7 +94,7 @@ func UpdateNote(note Note) error {
 	}
 	note.Text = strings.TrimSpace(strings.ToLower(note.Text))
 	note.Title = strings.TrimSpace(strings.ToLower(note.Title))
-	rows := database.DB.Model(&Note{}).Where("uuid = ? AND user_uuid = ?", note.UUID, note.UserUuid).Updates(note)
+	rows := DB.Model(&Note{}).Where("uuid = ? AND user_uuid = ?", note.UUID, note.UserUuid).Updates(note)
 	if rows.RowsAffected == 0 {
 		return errors.New("note not found")
 	}
@@ -110,6 +109,6 @@ func FindNotes(uuid string) ([]Note, error) {
 		return nil, err
 	}
 	var res []Note
-	database.DB.Where("user_uuid = ?", uuid).Find(&res)
+	DB.Where("user_uuid = ?", uuid).Find(&res)
 	return res, nil
 }

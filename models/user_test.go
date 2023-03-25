@@ -3,16 +3,14 @@ package models
 import (
 	"fmt"
 	"testing"
-
-	"github.com/Notes-App/database"
 )
 
 func TestCreateUser(t *testing.T) {
-	dbErr := database.Connect()
+	dbErr := Connect()
 	if dbErr != nil {
 		t.Fatal(dbErr)
 	}
-	defer database.CleanUp()
+	defer CleanUp()
 	type test struct {
 		name     string
 		input    User
@@ -34,7 +32,7 @@ func TestCreateUser(t *testing.T) {
 			t.Fatalf("got: %s    expected:%s", err, tc.err)
 		}
 		var result *User
-		database.DB.First(&result, "email = ?", tc.input.Email)
+		DB.First(&result, "email = ?", tc.input.Email)
 		if result == nil && tc.err == nil {
 			t.Fatalf("got: %v    expected:%v", result, *tc.expected)
 		}
@@ -53,11 +51,11 @@ func TestCreateUser(t *testing.T) {
 }
 
 func TestFindUser(t *testing.T) {
-	dbErr := database.Connect()
+	dbErr := Connect()
 	if dbErr != nil {
 		t.Fatal(dbErr)
 	}
-	defer database.CleanUp()
+	defer CleanUp()
 	_, err := CreateUser(User{Email: "test@gmail.com", Password: "ping pong"})
 	if err != nil {
 		t.Fatal(err)
@@ -108,11 +106,11 @@ func TestFindUser(t *testing.T) {
 }
 
 func TestFindUserByUUID(t *testing.T) {
-	dbErr := database.Connect()
+	dbErr := Connect()
 	if dbErr != nil {
 		t.Fatal(dbErr)
 	}
-	defer database.CleanUp()
+	defer CleanUp()
 	u1, err := CreateUser(User{Email: "test@gmail.com", Password: "ping pong"})
 	if err != nil {
 		t.Fatal(err)

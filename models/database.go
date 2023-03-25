@@ -1,9 +1,8 @@
-package database
+package models
 
 import (
 	"os"
 
-	"github.com/Notes-App/schemas"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -16,7 +15,7 @@ func Connect() error {
 	if err != nil {
 		return err
 	}
-	DB.AutoMigrate(&schemas.Note{}, &schemas.User{})
+	DB.AutoMigrate(&Note{}, &User{})
 	return nil
 }
 

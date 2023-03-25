@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/mail"
 
-	"github.com/Notes-App/database"
 	"github.com/Notes-App/encrypt"
 	"github.com/Notes-App/generators"
 	"golang.org/x/crypto/bcrypt"
@@ -33,7 +32,7 @@ func CreateUser(user User) (*User, error) {
 	}
 	user.Password = hashed
 	user.UUID = uuid
-	database.DB.Create(&user)
+	DB.Create(&user)
 	return &user, nil
 }
 
@@ -46,7 +45,7 @@ func FindUser(user User) (*User, error) {
 	if user.Password == "" {
 		return nil, errors.New("empty password")
 	}
-	err = database.DB.Where("email = ?", user.Email).First(&dbUser).Error
+	err = DB.Where("email = ?", user.Email).First(&dbUser).Error
 	if err != nil {
 		return nil, errors.New("user not found")
 	}
@@ -62,7 +61,7 @@ func FindUserByUUID(uuid string) (*User, error) {
 	if !IsUUIDValid(uuid) {
 		return nil, errors.New("invalid uuid")
 	}
-	err := database.DB.Where("uuid = ?", uuid).First(&dbUser).Error
+	err := DB.Where("uuid = ?", uuid).First(&dbUser).Error
 	if err != nil || &dbUser == nil {
 		return nil, errors.New("user not found")
 	}
