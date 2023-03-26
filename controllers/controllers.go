@@ -11,13 +11,9 @@ import (
 )
 
 func CreateNote(c *gin.Context) {
-	uuid, err := c.Cookie("uuid")
-	if err != nil {
-		c.JSON(401, gin.H{"error": "UnAuthorized"})
-		return
-	}
+	uuid := c.GetHeader("uuid")
 	var input models.Note
-	err = c.ShouldBindJSON(&input)
+	err := c.ShouldBindJSON(&input)
 	if err != nil {
 		c.JSON(400, gin.H{"error": "couldn't bind json"})
 		return
@@ -32,13 +28,9 @@ func CreateNote(c *gin.Context) {
 }
 
 func FindNoteByTitle(c *gin.Context) {
-	uuid, err := c.Cookie("uuid")
-	if err != nil {
-		c.JSON(401, gin.H{"error": "UnAuthorized"})
-		return
-	}
+	uuid := c.GetHeader("uuid")
 	var input models.GetNote
-	err = c.ShouldBindJSON(&input)
+	err := c.ShouldBindJSON(&input)
 	if err != nil {
 		c.JSON(400, gin.H{"error": "couldn't bind json"})
 		return
@@ -52,11 +44,7 @@ func FindNoteByTitle(c *gin.Context) {
 }
 
 func GetAllNotes(c *gin.Context) {
-	uuid, err := c.Cookie("uuid")
-	if err != nil {
-		c.JSON(401, gin.H{"error": err.Error()})
-		return
-	}
+	uuid := c.GetHeader("uuid")
 	notes, err := models.FindNotes(uuid)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
@@ -66,13 +54,9 @@ func GetAllNotes(c *gin.Context) {
 }
 
 func DeleteNoteByUUID(c *gin.Context) {
-	userUuid, err := c.Cookie("uuid")
-	if err != nil {
-		c.JSON(401, gin.H{"error": "UnAuthorized"})
-		return
-	}
+	userUuid := c.GetHeader("uuid")
 	uuid := c.Param("uuid")
-	err = models.DeleteNote(uuid, userUuid)
+	err := models.DeleteNote(uuid, userUuid)
 	if err != nil {
 		c.JSON(400, err.Error())
 		return
@@ -83,12 +67,8 @@ func DeleteNoteByUUID(c *gin.Context) {
 
 func UpdateNoteByUUID(c *gin.Context) {
 	var input models.Note
-	userUuid, err := c.Cookie("uuid")
-	if err != nil {
-		c.JSON(401, gin.H{"error": "UnAuthorized"})
-		return
-	}
-	err = c.ShouldBindJSON(&input)
+	userUuid := c.GetHeader("uuid")
+	err := c.ShouldBindJSON(&input)
 	if err != nil {
 		c.JSON(400, gin.H{"error": "couldn't bind json"})
 		return
@@ -147,8 +127,8 @@ func Login(c *gin.Context) {
 		return
 	}
 	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("Authorization", tokenString, 3600, "", "", false, true)
-	c.SetCookie("uuid", gotUser.UUID, 3600, "", "", false, true)
+	c.Header("Token", tokenString)
+	c.Header("UUID", gotUser.UUID)
 	c.JSON(http.StatusOK, gin.H{"message": "logged in"})
 	return
 }
